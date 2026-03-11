@@ -1,0 +1,50 @@
+{
+  "entities": {
+    "Pothole": {
+      "title": "Pothole",
+      "description": "A reported pothole location and details.",
+      "type": "object",
+      "properties": {
+        "lat": {
+          "type": "number",
+          "description": "Latitude of the pothole"
+        },
+        "lng": {
+          "type": "number",
+          "description": "Longitude of the pothole"
+        },
+        "severity": {
+          "type": "string",
+          "enum": ["low", "medium", "high"],
+          "description": "Severity level of the pothole"
+        },
+        "description": {
+          "type": "string",
+          "description": "Optional description of the pothole"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["open", "fixed"],
+          "description": "Current status of the pothole report"
+        },
+        "createdAt": {
+          "type": "timestamp",
+          "description": "When the pothole was reported"
+        },
+        "reportedBy": {
+          "type": "string",
+          "description": "UID of the user who reported it"
+        }
+      },
+      "required": ["lat", "lng", "severity", "status", "createdAt", "reportedBy"]
+    }
+  },
+  "firestore": {
+    "/potholes/{potholeId}": {
+      "schema": {
+        "$ref": "#/entities/Pothole"
+      },
+      "description": "Collection of all reported potholes"
+    }
+  }
+}

@@ -1,0 +1,5 @@
+{
+  "name": "Project Sadak",
+  "description": "A crowdsourced pothole reporting platform with an interactive map, severity color-coding, and admin management. An Initiative by Parth Anand.",
+  "requestFramePermissions": ["geolocation"]
+}
