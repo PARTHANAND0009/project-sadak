@@ -1,14 +1,15 @@
 import { Pothole } from '../types';
 import { format } from 'date-fns';
-import { MapPin, AlertTriangle, CheckCircle, Clock } from 'lucide-react';
+import { MapPin, AlertTriangle, CheckCircle, Clock, X } from 'lucide-react';
 
 interface SidebarProps {
   potholes: Pothole[];
   onSelect: (id: string) => void;
   selectedId: string | null;
+  onClose?: () => void;
 }
 
-export default function Sidebar({ potholes, onSelect, selectedId }: SidebarProps) {
+export default function Sidebar({ potholes, onSelect, selectedId, onClose }: SidebarProps) {
   const openPotholes = potholes.filter(p => p.status === 'open');
   const fixedPotholes = potholes.filter(p => p.status === 'fixed');
   
@@ -17,14 +18,24 @@ export default function Sidebar({ potholes, onSelect, selectedId }: SidebarProps
   const lowSeverity = openPotholes.filter(p => p.severity === 'low').length;
 
   return (
-    <div className="w-80 h-full bg-white border-r border-gray-200 flex flex-col overflow-hidden text-gray-900 shadow-sm z-10 relative">
-      <div className="p-6 border-b border-gray-200">
-        <h1 className="text-2xl font-bold tracking-tight mb-1 flex items-center gap-2">
-          <MapPin className="text-emerald-600" />
-          Project Sadak
-        </h1>
-        <p className="text-emerald-600 text-xs font-medium uppercase tracking-wider mb-2">An Initiative by Parth Anand</p>
-        <p className="text-gray-500 text-sm">Community Pothole Reporting</p>
+    <div className="w-80 max-w-[85vw] h-full bg-white border-r border-gray-200 flex flex-col overflow-hidden text-gray-900 shadow-sm z-10 relative">
+      <div className="p-6 border-b border-gray-200 flex justify-between items-start">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight mb-1 flex items-center gap-2">
+            <MapPin className="text-emerald-600" />
+            Project Sadak
+          </h1>
+          <p className="text-emerald-600 text-xs font-medium uppercase tracking-wider mb-2">An Initiative by Parth Anand</p>
+          <p className="text-gray-500 text-sm">Community Pothole Reporting</p>
+        </div>
+        {onClose && (
+          <button 
+            onClick={onClose}
+            className="md:hidden text-gray-400 hover:text-gray-600 p-1 -mr-2 -mt-2"
+          >
+            <X size={24} />
+          </button>
+        )}
       </div>
 
       <div className="p-6 border-b border-gray-200 bg-gray-50">

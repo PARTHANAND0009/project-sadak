@@ -6,7 +6,7 @@ import { Pothole, User, Severity, Status } from './types';
 import PotholeMap from './components/Map';
 import Sidebar from './components/Sidebar';
 import ReportModal from './components/ReportModal';
-import { LogIn, LogOut, PlusCircle, AlertTriangle } from 'lucide-react';
+import { LogIn, LogOut, PlusCircle, AlertTriangle, Menu } from 'lucide-react';
 import L from 'leaflet';
 
 export default function App() {
@@ -16,6 +16,7 @@ export default function App() {
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [selectedPotholeId, setSelectedPotholeId] = useState<string | null>(null);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
@@ -231,18 +232,42 @@ export default function App() {
   }
 
   return (
-    <div className="flex h-screen w-full bg-gray-50 overflow-hidden font-sans text-gray-900">
+    <div className="flex h-screen w-full bg-gray-50 overflow-hidden font-sans text-gray-900 relative">
       {user ? (
         <>
-          <Sidebar 
-            potholes={potholes} 
-            onSelect={setSelectedPotholeId} 
-            selectedId={selectedPotholeId}
-          />
+          {/* Mobile Sidebar Overlay */}
+          {isSidebarOpen && (
+            <div 
+              className="fixed inset-0 bg-black/50 z-40 md:hidden backdrop-blur-sm"
+              onClick={() => setIsSidebarOpen(false)}
+            />
+          )}
+
+          <div className={`
+            fixed inset-y-0 left-0 z-50 transform transition-transform duration-300 ease-in-out
+            md:relative md:translate-x-0
+            ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+          `}>
+            <Sidebar 
+              potholes={potholes} 
+              onSelect={(id) => {
+                setSelectedPotholeId(id);
+                setIsSidebarOpen(false);
+              }} 
+              selectedId={selectedPotholeId}
+              onClose={() => setIsSidebarOpen(false)}
+            />
+          </div>
           
-          <div className="flex-1 relative flex flex-col">
+          <div className="flex-1 relative flex flex-col w-full">
             <header className="absolute top-0 left-0 right-0 z-10 p-4 flex justify-between items-start pointer-events-none">
-              <div className="pointer-events-auto">
+              <div className="pointer-events-auto flex gap-2">
+                <button
+                  onClick={() => setIsSidebarOpen(true)}
+                  className="md:hidden bg-white text-gray-700 p-3 rounded-xl shadow-lg border border-gray-200 flex items-center justify-center transition-all active:scale-95"
+                >
+                  <Menu size={20} />
+                </button>
                 <button
                   onClick={() => {
                     setSelectedLocation(null);
@@ -251,7 +276,8 @@ export default function App() {
                   className="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-3 rounded-xl shadow-lg shadow-emerald-900/20 flex items-center gap-2 font-medium transition-all hover:scale-105 active:scale-95"
                 >
                   <PlusCircle size={20} />
-                  Report Pothole
+                  <span className="hidden sm:inline">Report Pothole</span>
+                  <span className="sm:hidden">Report</span>
                 </button>
               </div>
               

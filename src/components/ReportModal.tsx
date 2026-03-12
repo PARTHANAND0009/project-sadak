@@ -121,8 +121,8 @@ export default function ReportModal({ isOpen, onClose, onSubmit, initialLocation
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/40 backdrop-blur-sm p-4">
-      <div className="bg-white border border-gray-200 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
-        <div className="flex justify-between items-center p-6 border-b border-gray-100">
+      <div className="bg-white border border-gray-200 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden flex flex-col max-h-[90vh]">
+        <div className="flex justify-between items-center p-6 border-b border-gray-100 shrink-0">
           <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
             <AlertTriangle className="text-emerald-600" />
             Report Pothole
@@ -132,7 +132,7 @@ export default function ReportModal({ isOpen, onClose, onSubmit, initialLocation
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-5">
+        <form onSubmit={handleSubmit} className="p-6 space-y-5 overflow-y-auto">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Location</label>
             <div className="flex gap-2 mb-2">
