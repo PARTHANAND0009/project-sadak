@@ -5,7 +5,7 @@ import { Severity } from '../types';
 interface ReportModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (data: { lat: number; lng: number; severity: Severity; description: string; imageUrl?: string }) => void;
+  onSubmit: (data: { lat: number; lng: number; severity: Severity; description: string; imageUrl: string }) => void;
   initialLocation: { lat: number; lng: number } | null;
 }
 
@@ -102,12 +102,17 @@ export default function ReportModal({ isOpen, onClose, onSubmit, initialLocation
       return;
     }
     
+    if (!imageUrl) {
+      alert('Please upload a photo of the pothole.');
+      return;
+    }
+    
     onSubmit({
       lat: parseFloat(lat),
       lng: parseFloat(lng),
       severity,
       description,
-      imageUrl: imageUrl || undefined
+      imageUrl
     });
     
     // Reset form
@@ -203,7 +208,7 @@ export default function ReportModal({ isOpen, onClose, onSubmit, initialLocation
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Photo (Optional)</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Photo (Required)</label>
             <input
               type="file"
               accept="image/*"

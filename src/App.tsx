@@ -147,7 +147,7 @@ export default function App() {
     setIsReportModalOpen(true);
   };
 
-  const handleSubmitReport = async (data: { lat: number; lng: number; severity: Severity; description: string; imageUrl?: string }) => {
+  const handleSubmitReport = async (data: { lat: number; lng: number; severity: Severity; description: string; imageUrl: string }) => {
     if (!user) return;
     
     try {
@@ -163,11 +163,8 @@ export default function App() {
         status: 'open',
         createdAt: timestamp,
         reportedBy: user.uid,
+        imageUrl: data.imageUrl,
       };
-      
-      if (data.imageUrl) {
-        potholeData.imageUrl = data.imageUrl;
-      }
       
       await setDoc(newPotholeRef, potholeData);
       
