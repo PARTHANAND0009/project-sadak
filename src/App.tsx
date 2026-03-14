@@ -6,7 +6,8 @@ import { Pothole, User, Severity, Status } from './types';
 import PotholeMap from './components/Map';
 import Sidebar from './components/Sidebar';
 import ReportModal from './components/ReportModal';
-import { LogIn, LogOut, PlusCircle, AlertTriangle, Menu } from 'lucide-react';
+import OnboardingAnimation from './components/OnboardingAnimation';
+import { LogIn, LogOut, PlusCircle, AlertTriangle, Menu, ArrowRight, MapPin } from 'lucide-react';
 import L from 'leaflet';
 
 export default function App() {
@@ -17,6 +18,12 @@ export default function App() {
   const [selectedLocation, setSelectedLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [selectedPotholeId, setSelectedPotholeId] = useState<string | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(() => localStorage.getItem('hasVisited') !== 'true');
+
+  const handleGetStarted = () => {
+    localStorage.setItem('hasVisited', 'true');
+    setShowOnboarding(false);
+  };
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
@@ -320,6 +327,8 @@ export default function App() {
             initialLocation={selectedLocation}
           />
         </>
+      ) : showOnboarding ? (
+        <OnboardingAnimation onComplete={handleGetStarted} />
       ) : (
         <div className="flex-1 flex flex-col items-center justify-center p-8 text-center relative overflow-hidden">
           <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1515162816999-a0c47dc192f7?auto=format&fit=crop&q=80')] bg-cover bg-center opacity-5"></div>
