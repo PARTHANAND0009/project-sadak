@@ -89,7 +89,8 @@ service cloud.firestore {
     // ===============================================================
 
     match /pothole_index/{docId} {
-      allow read: if isAuthenticated();
+      // Allow public read access to the index to show total pothole counts on the landing page
+      allow read: if true;
       // Allow any authenticated user to update the index (to add their pothole)
       // In a real production app, this should be done via Cloud Functions to prevent malicious overwrites,
       // but for this prototype, we allow authenticated users to update it.

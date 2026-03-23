@@ -7,6 +7,8 @@ import PotholeMap from './components/Map';
 import Sidebar from './components/Sidebar';
 import ReportModal from './components/ReportModal';
 import OnboardingAnimation from './components/OnboardingAnimation';
+import AboutUs from './components/AboutUs';
+import Sessions from './components/Sessions';
 import { LogIn, LogOut, PlusCircle, AlertTriangle, Menu, ArrowRight, MapPin } from 'lucide-react';
 import L from 'leaflet';
 
@@ -19,6 +21,7 @@ export default function App() {
   const [selectedPotholeId, setSelectedPotholeId] = useState<string | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(() => localStorage.getItem('hasVisited') !== 'true');
+  const [currentView, setCurrentView] = useState<'home' | 'about' | 'sessions'>('home');
 
   const handleGetStarted = () => {
     localStorage.setItem('hasVisited', 'true');
@@ -55,8 +58,7 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    if (!isAuthReady || !user) {
-      setPotholes([]);
+    if (!isAuthReady) {
       return;
     }
 
@@ -326,19 +328,35 @@ export default function App() {
         </>
       ) : showOnboarding ? (
         <OnboardingAnimation onComplete={handleGetStarted} />
+      ) : currentView === 'about' ? (
+        <AboutUs onBack={() => setCurrentView('home')} />
+      ) : currentView === 'sessions' ? (
+        <Sessions onBack={() => setCurrentView('home')} />
       ) : (
         <div className="flex-1 flex flex-col items-center justify-center p-8 text-center relative overflow-hidden">
           <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1515162816999-a0c47dc192f7?auto=format&fit=crop&q=80')] bg-cover bg-center opacity-5"></div>
           <div className="absolute inset-0 bg-gradient-to-t from-gray-50 via-gray-50/90 to-white/50"></div>
           
-          <div className="relative z-10 max-w-md w-full">
+          {/* Navigation Bar */}
+          <nav className="absolute top-0 left-0 right-0 p-6 md:px-12 flex justify-between items-center z-20">
+            <div className="flex gap-6 text-sm font-semibold text-gray-700">
+              <a href="#" onClick={(e) => { e.preventDefault(); setCurrentView('about'); }} className="hover:text-emerald-600 transition-colors">About Us</a>
+              <a href="#" onClick={(e) => { e.preventDefault(); setCurrentView('sessions'); }} className="hover:text-emerald-600 transition-colors">Sessions</a>
+            </div>
+            <div className="text-sm font-medium text-gray-700 bg-white/80 backdrop-blur-sm px-4 py-2 rounded-full shadow-sm border border-gray-100 flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+              Reported - <span className="text-emerald-600 font-bold">{potholes.length}</span> potholes
+            </div>
+          </nav>
+          
+          <div className="relative z-10 max-w-md w-full mt-12">
             <div className="mb-8 flex justify-center">
               <div className="w-20 h-20 bg-emerald-50 rounded-3xl flex items-center justify-center border border-emerald-100 shadow-xl shadow-emerald-500/10">
                 <AlertTriangle className="text-emerald-600 w-10 h-10" />
               </div>
             </div>
             
-            <h1 className="text-4xl font-bold tracking-tight mb-2 text-gray-900">Project Sadak</h1>
+            <h1 className="text-4xl font-bold tracking-tight mb-2 text-gray-900 font-['Playfair_Display'] italic">Project Sadak</h1>
             <p className="text-sm font-medium text-emerald-600 mb-4 uppercase tracking-wider">An Initiative by Parth Anand</p>
             <p className="text-lg text-gray-600 mb-10 leading-relaxed">
               Join the community effort to map and fix our roads. Report potholes instantly and track repairs in real-time.
@@ -355,6 +373,11 @@ export default function App() {
             <p className="mt-6 text-sm text-gray-500">
               By signing in, you agree to help make our streets safer.
             </p>
+          </div>
+
+          {/* Featured By */}
+          <div className="absolute bottom-6 left-6 text-sm text-gray-500 font-medium z-20">
+            As featured by Emergent Labs
           </div>
         </div>
       )}
