@@ -377,7 +377,7 @@ export default function App() {
 
           {/* Featured By */}
           <div className="absolute bottom-6 left-6 text-sm text-gray-500 font-medium z-20">
-            As featured by Emergent Labs
+            As featured by the CEO of Emergent
           </div>
         </div>
       )}

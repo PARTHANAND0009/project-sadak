@@ -51,7 +51,7 @@ export default function Sessions({ onBack }: SessionsProps) {
           <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-white/50 aspect-[4/3] lg:aspect-auto lg:h-[600px] bg-gray-200">
             {/* Note: Using a placeholder image here. Please replace the src with the actual uploaded image path if available. */}
             <img 
-              src="https://i.ibb.co/TBK3GTDf/IMG-6400-1.jpg" 
+              src="https://images.unsplash.com/photo-1577896851231-70ef18881754?auto=format&fit=crop&q=80" 
               alt="Children learning about road safety" 
               className="w-full h-full object-cover"
               referrerPolicy="no-referrer"
