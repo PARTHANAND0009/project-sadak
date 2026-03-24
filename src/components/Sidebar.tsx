@@ -21,8 +21,8 @@ export default function Sidebar({ potholes, onSelect, selectedId, onClose }: Sid
     <div className="w-80 max-w-[85vw] h-full bg-white border-r border-gray-200 flex flex-col overflow-hidden text-gray-900 shadow-sm z-10 relative">
       <div className="p-6 border-b border-gray-200 flex justify-between items-start">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight mb-1 flex items-center gap-2">
-            <MapPin className="text-emerald-600" />
+          <h1 className="text-2xl font-bold tracking-tight mb-1 flex items-center gap-2 font-['Playfair_Display'] italic">
+            <MapPin className="text-emerald-600 not-italic" />
             Project Sadak
           </h1>
           <p className="text-emerald-600 text-xs font-medium uppercase tracking-wider mb-2">An Initiative by Parth Anand</p>
