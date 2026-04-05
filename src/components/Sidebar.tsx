@@ -107,6 +107,12 @@ export default function Sidebar({ potholes, onSelect, selectedId, onClose }: Sid
                   <img src={pothole.imageUrl} alt="Pothole" className="w-full h-full object-cover" />
                 </div>
               )}
+              {pothole.fixedImageUrl && (
+                <div className="mt-2 h-24 w-full rounded-lg overflow-hidden border border-emerald-200 relative">
+                  <div className="absolute top-0 left-0 bg-emerald-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-br-lg z-10">FIXED</div>
+                  <img src={pothole.fixedImageUrl} alt="Fixed Pothole" className="w-full h-full object-cover" />
+                </div>
+              )}
             </button>
           ))
         )}

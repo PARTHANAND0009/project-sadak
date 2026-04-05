@@ -109,6 +109,7 @@ export default function App() {
                 ...p,
                 description: data.description,
                 imageUrl: data.imageUrl,
+                fixedImageUrl: data.fixedImageUrl,
                 reportedBy: data.reportedBy,
                 createdAt: data.createdAt
               };
@@ -191,13 +192,16 @@ export default function App() {
     }
   };
 
-  const handleStatusChange = async (id: string, newStatus: Status) => {
+  const handleStatusChange = async (id: string, newStatus: Status, fixedImageUrl?: string) => {
     if (!user || user.role !== 'admin') return;
     
     try {
-      await updateDoc(doc(db, 'potholes', id), {
-        status: newStatus
-      });
+      const updateData: any = { status: newStatus };
+      if (fixedImageUrl) {
+        updateData.fixedImageUrl = fixedImageUrl;
+      }
+
+      await updateDoc(doc(db, 'potholes', id), updateData);
       
       // Update index
       await updateDoc(doc(db, 'pothole_index', 'master'), {

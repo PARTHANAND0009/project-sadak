@@ -10,6 +10,7 @@ export interface Pothole {
   severity: Severity;
   description?: string;
   imageUrl?: string;
+  fixedImageUrl?: string;
   status: Status;
   createdAt: Timestamp;
   reportedBy: string;

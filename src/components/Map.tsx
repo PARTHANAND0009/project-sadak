@@ -4,6 +4,7 @@ import L from 'leaflet';
 import { Pothole } from '../types';
 import { format } from 'date-fns';
 import { MapPin, AlertTriangle, CheckCircle, Trash2 } from 'lucide-react';
+import FixModal from './FixModal';
 
 const createIcon = (color: string) => new L.Icon({
   iconUrl: `https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-${color}.png`,
@@ -53,14 +54,17 @@ function MapFlyTo({ selectedPothole, potholes }: { selectedPothole: string | nul
 }
 
 export default function PotholeMap({ potholes, isAdmin, onStatusChange, onDelete, onMapClick, selectedPotholeId }: MapProps) {
+  const [fixingPotholeId, setFixingPotholeId] = useState<string | null>(null);
+
   return (
-    <MapContainer 
-      center={[28.6139, 77.2090]} 
-      zoom={12} 
-      minZoom={2}
-      className="w-full h-full z-0"
-      zoomControl={false}
-    >
+    <>
+      <MapContainer 
+        center={[28.6139, 77.2090]} 
+        zoom={12} 
+        minZoom={2}
+        className="w-full h-full z-0"
+        zoomControl={false}
+      >
       <ZoomControl position="bottomright" />
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -104,11 +108,18 @@ export default function PotholeMap({ potholes, isAdmin, onStatusChange, onDelete
                   </div>
                 )}
 
+                {pothole.fixedImageUrl && (
+                  <div className="mb-3 w-full h-32 rounded-lg overflow-hidden border border-gray-200">
+                    <div className="text-xs font-bold text-gray-500 mb-1">Fix Photo:</div>
+                    <img src={pothole.fixedImageUrl} alt="Fixed Pothole" className="w-full h-28 object-cover rounded" />
+                  </div>
+                )}
+
                 {isAdmin && (
                   <div className="flex items-center gap-2 pt-3 border-t border-gray-100 mt-2">
                     {pothole.status === 'open' ? (
                       <button 
-                        onClick={() => onStatusChange(pothole.id, 'fixed')}
+                        onClick={() => setFixingPotholeId(pothole.id)}
                         className="flex-1 flex items-center justify-center gap-1 bg-emerald-500 hover:bg-emerald-600 text-white py-1.5 px-2 rounded text-xs transition-colors"
                       >
                         <CheckCircle size={14} /> Mark Fixed
@@ -135,6 +146,18 @@ export default function PotholeMap({ potholes, isAdmin, onStatusChange, onDelete
           </Marker>
         );
       })}
-    </MapContainer>
+      </MapContainer>
+
+      <FixModal
+        isOpen={!!fixingPotholeId}
+        onClose={() => setFixingPotholeId(null)}
+        onSubmit={(imageUrl) => {
+          if (fixingPotholeId) {
+            onStatusChange(fixingPotholeId, 'fixed', imageUrl);
+            setFixingPotholeId(null);
+          }
+        }}
+      />
+    </>
   );
 }
