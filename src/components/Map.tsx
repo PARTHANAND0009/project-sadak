@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMapEvents, useMap, ZoomControl } from 'react-leaflet';
 import L from 'leaflet';
 import { Pothole } from '../types';
@@ -28,6 +28,7 @@ interface MapProps {
   onStatusChange: (id: string, newStatus: 'open' | 'fixed') => void;
   onDelete: (id: string) => void;
   onMapClick: (latlng: L.LatLng) => void;
+  onMarkerClick?: (id: string) => void;
   selectedPotholeId: string | null;
 }
 
@@ -53,7 +54,35 @@ function MapFlyTo({ selectedPothole, potholes }: { selectedPothole: string | nul
   return null;
 }
 
-export default function PotholeMap({ potholes, isAdmin, onStatusChange, onDelete, onMapClick, selectedPotholeId }: MapProps) {
+function LocateUser({ selectedPothole }: { selectedPothole: string | null }) {
+  const map = useMap();
+  const selectedRef = useRef(selectedPothole);
+
+  useEffect(() => {
+    selectedRef.current = selectedPothole;
+  }, [selectedPothole]);
+
+  useEffect(() => {
+    if ('geolocation' in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          if (!selectedRef.current) {
+            // Zoom level 10 is good for state/city level view
+            map.flyTo([position.coords.latitude, position.coords.longitude], 10, { animate: true });
+          }
+        },
+        (error) => {
+          console.log('Geolocation error:', error);
+        },
+        { timeout: 10000, maximumAge: 60000 }
+      );
+    }
+  }, [map]);
+
+  return null;
+}
+
+export default function PotholeMap({ potholes, isAdmin, onStatusChange, onDelete, onMapClick, onMarkerClick, selectedPotholeId }: MapProps) {
   const [fixingPotholeId, setFixingPotholeId] = useState<string | null>(null);
 
   return (
@@ -72,6 +101,7 @@ export default function PotholeMap({ potholes, isAdmin, onStatusChange, onDelete
       />
       <MapEvents onMapClick={onMapClick} />
       <MapFlyTo selectedPothole={selectedPotholeId} potholes={potholes} />
+      <LocateUser selectedPothole={selectedPotholeId} />
       
       {potholes.map((pothole) => {
         const icon = pothole.status === 'fixed' ? icons.fixed : icons[pothole.severity];
@@ -81,6 +111,13 @@ export default function PotholeMap({ potholes, isAdmin, onStatusChange, onDelete
             key={pothole.id} 
             position={[pothole.lat, pothole.lng]} 
             icon={icon}
+            eventHandlers={{
+              click: () => {
+                if (onMarkerClick) {
+                  onMarkerClick(pothole.id);
+                }
+              }
+            }}
           >
             <Popup className="custom-popup">
               <div className="p-1 min-w-[200px]">

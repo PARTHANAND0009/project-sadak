@@ -33,7 +33,7 @@ export default function OnboardingAnimation({ onComplete }: OnboardingAnimationP
     sequence();
   }, [onComplete]);
 
-  const sentence = "Every year, 20,000+ people lose their lives due to potholes on Indian roads.";
+  const sentence = "Every year, 20,000+ people lose their lives due to potholes globally.";
   const words = sentence.split(" ");
 
   const container = {

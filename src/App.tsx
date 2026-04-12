@@ -315,6 +315,7 @@ export default function App() {
                 onStatusChange={handleStatusChange}
                 onDelete={handleDelete}
                 onMapClick={handleMapClick}
+                onMarkerClick={setSelectedPotholeId}
                 selectedPotholeId={selectedPotholeId}
               />
             </main>
@@ -356,7 +357,7 @@ export default function App() {
           <div className="relative z-10 max-w-md w-full mt-12">
             <div className="mb-8 flex justify-center">
               <div className="w-20 h-20 bg-emerald-50 rounded-3xl flex items-center justify-center border border-emerald-100 shadow-xl shadow-emerald-500/10">
-                <AlertTriangle className="text-emerald-600 w-10 h-10" />
+                <MapPin className="text-emerald-600 w-10 h-10" />
               </div>
             </div>
             
