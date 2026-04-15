@@ -378,11 +378,15 @@ export default function App() {
             <p className="mt-6 text-sm text-gray-500">
               By signing in, you agree to help make our streets safer.
             </p>
-          </div>
 
-          {/* Featured By */}
-          <div className="absolute bottom-6 left-6 text-sm text-gray-500 font-medium z-20">
-            As featured by the CEO of Emergent
+            <div className="mt-12 flex flex-col items-center justify-center w-full">
+              <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Supported By</p>
+              <div className="flex items-center justify-center gap-2 sm:gap-4 text-gray-800 w-full">
+                <a href="https://exerton.xyz/" target="_blank" rel="noopener noreferrer" className="font-bold text-sm sm:text-lg tracking-tight hover:text-emerald-600 transition-colors whitespace-nowrap">Exerton</a>
+                <a href="https://colinangel.com/" target="_blank" rel="noopener noreferrer" className="text-sm sm:text-lg font-normal hover:text-emerald-600 transition-colors whitespace-nowrap">Colin Angel</a>
+                <a href="https://www.instagram.com/marginitiative/" target="_blank" rel="noopener noreferrer" className="text-sm sm:text-lg font-normal hover:text-emerald-600 transition-colors whitespace-nowrap">The Marg Initiative</a>
+              </div>
+            </div>
           </div>
         </div>
       )}
