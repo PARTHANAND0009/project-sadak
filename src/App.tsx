@@ -329,6 +329,7 @@ export default function App() {
             }}
             onSubmit={handleSubmitReport}
             initialLocation={selectedLocation}
+            isAdmin={user?.role === 'admin'}
           />
         </>
       ) : showOnboarding ? (

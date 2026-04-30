@@ -7,9 +7,10 @@ interface ReportModalProps {
   onClose: () => void;
   onSubmit: (data: { lat: number; lng: number; severity: Severity; description: string; imageUrl: string }) => void;
   initialLocation: { lat: number; lng: number } | null;
+  isAdmin?: boolean;
 }
 
-export default function ReportModal({ isOpen, onClose, onSubmit, initialLocation }: ReportModalProps) {
+export default function ReportModal({ isOpen, onClose, onSubmit, initialLocation, isAdmin }: ReportModalProps) {
   const [lat, setLat] = useState<string>('');
   const [lng, setLng] = useState<string>('');
   const [severity, setSeverity] = useState<Severity>('medium');
@@ -102,7 +103,7 @@ export default function ReportModal({ isOpen, onClose, onSubmit, initialLocation
       return;
     }
     
-    if (!imageUrl) {
+    if (!isAdmin && !imageUrl) {
       alert('Please upload a photo of the pothole.');
       return;
     }
@@ -208,7 +209,9 @@ export default function ReportModal({ isOpen, onClose, onSubmit, initialLocation
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Photo (Required)</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Photo {isAdmin ? '(Optional for Admins)' : '(Required)'}
+            </label>
             <input
               type="file"
               accept="image/*"
