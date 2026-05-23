@@ -385,7 +385,6 @@ export default function App() {
               <div className="flex items-center justify-center gap-2 sm:gap-4 text-gray-800 w-full">
                 <a href="https://exerton.xyz/" target="_blank" rel="noopener noreferrer" className="font-bold text-sm sm:text-lg tracking-tight hover:text-emerald-600 transition-colors whitespace-nowrap">Exerton</a>
                 <a href="https://colinangel.com/" target="_blank" rel="noopener noreferrer" className="text-sm sm:text-lg font-normal hover:text-emerald-600 transition-colors whitespace-nowrap">Colin Angel</a>
-                <a href="https://www.instagram.com/marginitiative/" target="_blank" rel="noopener noreferrer" className="text-sm sm:text-lg font-normal hover:text-emerald-600 transition-colors whitespace-nowrap">The Marg Initiative</a>
               </div>
             </div>
           </div>
