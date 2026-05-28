@@ -9,7 +9,8 @@ import ReportModal from './components/ReportModal';
 import OnboardingAnimation from './components/OnboardingAnimation';
 import AboutUs from './components/AboutUs';
 import Sessions from './components/Sessions';
-import { LogIn, LogOut, PlusCircle, AlertTriangle, Menu, ArrowRight, MapPin } from 'lucide-react';
+import ExportModal from './components/ExportModal';
+import { LogIn, LogOut, PlusCircle, AlertTriangle, Menu, ArrowRight, MapPin, Download } from 'lucide-react';
 import L from 'leaflet';
 
 export default function App() {
@@ -17,6 +18,9 @@ export default function App() {
   const [potholes, setPotholes] = useState<Pothole[]>([]);
   const [isAuthReady, setIsAuthReady] = useState(false);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+  const [isExportMode, setIsExportMode] = useState(false);
+  const [exportSelectedIds, setExportSelectedIds] = useState<Set<string>>(new Set());
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [selectedPotholeId, setSelectedPotholeId] = useState<string | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -128,8 +132,13 @@ export default function App() {
   const handleLogin = async () => {
     try {
       await signInWithPopup(auth, googleProvider);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error signing in', error);
+      if (error.code === 'auth/network-request-failed') {
+        alert('Sign-in failed due to network or browser restrictions. If you are viewing this app inside the AI Studio preview, please open it in a new tab (click the arrow icon in the top right) to sign in, or enable third-party cookies in your browser settings.');
+      } else {
+        alert(`Sign-in failed: ${error.message || 'Unknown error'}`);
+      }
     }
   };
 
@@ -289,6 +298,18 @@ export default function App() {
                   <span className="hidden sm:inline">Report Pothole</span>
                   <span className="sm:hidden">Report</span>
                 </button>
+                {user.role === 'admin' && !isExportMode && (
+                  <button
+                    onClick={() => {
+                      setIsExportMode(true);
+                      setExportSelectedIds(new Set());
+                    }}
+                    className="bg-gray-900 hover:bg-black text-white px-4 py-3 rounded-xl shadow-lg flex items-center gap-2 font-medium transition-all hover:scale-105 active:scale-95 border border-gray-800"
+                  >
+                    <Download size={20} />
+                    <span className="hidden sm:inline">Export Data</span>
+                  </button>
+                )}
               </div>
               
               <div className="pointer-events-auto flex items-center gap-3 bg-white/90 backdrop-blur-md px-4 py-2 rounded-xl border border-gray-200 shadow-sm">
@@ -312,13 +333,56 @@ export default function App() {
               <PotholeMap 
                 potholes={potholes} 
                 isAdmin={user.role === 'admin'}
+                isExportMode={isExportMode}
+                exportSelectedIds={exportSelectedIds}
                 onStatusChange={handleStatusChange}
                 onDelete={handleDelete}
                 onMapClick={handleMapClick}
-                onMarkerClick={setSelectedPotholeId}
+                onMarkerClick={(id) => {
+                  if (isExportMode) {
+                    setExportSelectedIds(prev => {
+                      const newSet = new Set(prev);
+                      if (newSet.has(id)) newSet.delete(id);
+                      else newSet.add(id);
+                      return newSet;
+                    });
+                  } else {
+                    setSelectedLocation(null);
+                    setSelectedPotholeId(id);
+                  }
+                }}
                 selectedPotholeId={selectedPotholeId}
               />
             </main>
+            
+            {isExportMode && user.role === 'admin' && (
+              <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 z-20 bg-white/90 backdrop-blur-md px-6 py-4 rounded-2xl shadow-2xl border border-gray-200 flex flex-col sm:flex-row items-center gap-6 pointer-events-auto min-w-[320px] justify-between">
+                <div>
+                  <p className="font-semibold text-gray-900">Export Mode</p>
+                  <p className="text-sm text-gray-500">
+                    {exportSelectedIds.size === 0 ? "Select potholes on map" : `${exportSelectedIds.size} pothole(s) selected`}
+                  </p>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => {
+                      setIsExportMode(false);
+                      setExportSelectedIds(new Set());
+                    }}
+                    className="px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={() => setIsExportModalOpen(true)}
+                    disabled={exportSelectedIds.size === 0}
+                    className="px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Generate PDF
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
 
           <ReportModal
@@ -330,6 +394,13 @@ export default function App() {
             onSubmit={handleSubmitReport}
             initialLocation={selectedLocation}
             isAdmin={user?.role === 'admin'}
+          />
+
+          <ExportModal
+            isOpen={isExportModalOpen}
+            onClose={() => setIsExportModalOpen(false)}
+            potholes={potholes}
+            selectedIds={exportSelectedIds}
           />
         </>
       ) : showOnboarding ? (

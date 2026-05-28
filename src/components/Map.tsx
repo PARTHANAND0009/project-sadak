@@ -19,12 +19,15 @@ const icons = {
   low: createIcon('green'),
   medium: createIcon('gold'),
   high: createIcon('red'),
-  fixed: createIcon('grey')
+  fixed: createIcon('grey'),
+  selected: createIcon('violet')
 };
 
 interface MapProps {
   potholes: Pothole[];
   isAdmin: boolean;
+  isExportMode?: boolean;
+  exportSelectedIds?: Set<string>;
   onStatusChange: (id: string, newStatus: 'open' | 'fixed') => void;
   onDelete: (id: string) => void;
   onMapClick: (latlng: L.LatLng) => void;
@@ -82,7 +85,7 @@ function LocateUser({ selectedPothole }: { selectedPothole: string | null }) {
   return null;
 }
 
-export default function PotholeMap({ potholes, isAdmin, onStatusChange, onDelete, onMapClick, onMarkerClick, selectedPotholeId }: MapProps) {
+export default function PotholeMap({ potholes, isAdmin, isExportMode, exportSelectedIds, onStatusChange, onDelete, onMapClick, onMarkerClick, selectedPotholeId }: MapProps) {
   const [fixingPotholeId, setFixingPotholeId] = useState<string | null>(null);
 
   return (
@@ -104,7 +107,10 @@ export default function PotholeMap({ potholes, isAdmin, onStatusChange, onDelete
       <LocateUser selectedPothole={selectedPotholeId} />
       
       {potholes.map((pothole) => {
-        const icon = pothole.status === 'fixed' ? icons.fixed : icons[pothole.severity];
+        let icon = pothole.status === 'fixed' ? icons.fixed : icons[pothole.severity];
+        if (isExportMode && exportSelectedIds?.has(pothole.id)) {
+          icon = icons.selected;
+        }
         
         return (
           <Marker 
@@ -119,6 +125,7 @@ export default function PotholeMap({ potholes, isAdmin, onStatusChange, onDelete
               }
             }}
           >
+            {!isExportMode && (
             <Popup className="custom-popup">
               <div className="p-1 min-w-[200px]">
                 <div className="flex items-center justify-between mb-2">
@@ -180,6 +187,7 @@ export default function PotholeMap({ potholes, isAdmin, onStatusChange, onDelete
                 )}
               </div>
             </Popup>
+            )}
           </Marker>
         );
       })}
