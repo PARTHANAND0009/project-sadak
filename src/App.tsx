@@ -10,7 +10,8 @@ import OnboardingAnimation from './components/OnboardingAnimation';
 import AboutUs from './components/AboutUs';
 import Sessions from './components/Sessions';
 import ExportModal from './components/ExportModal';
-import { LogIn, LogOut, PlusCircle, AlertTriangle, Menu, ArrowRight, MapPin, Download } from 'lucide-react';
+import { LogIn, LogOut, PlusCircle, AlertTriangle, Menu, ArrowRight, MapPin, Download, Waves, ShieldAlert, X } from 'lucide-react';
+import { checkIfWaterLocation } from './utils/waterCheck';
 import L from 'leaflet';
 
 export default function App() {
@@ -26,6 +27,16 @@ export default function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(() => localStorage.getItem('hasVisited') !== 'true');
   const [currentView, setCurrentView] = useState<'home' | 'about' | 'sessions'>('home');
+  const [waterWarning, setWaterWarning] = useState<{ title: string; message: string } | null>(null);
+
+  useEffect(() => {
+    if (waterWarning) {
+      const timer = setTimeout(() => {
+        setWaterWarning(null);
+      }, 7000);
+      return () => clearTimeout(timer);
+    }
+  }, [waterWarning]);
 
   const handleGetStarted = () => {
     localStorage.setItem('hasVisited', 'true');
@@ -84,8 +95,11 @@ export default function App() {
         
         // Merge with existing full details if we have them
         setPotholes(prev => {
-          const fullDetailsMap = new Map(prev.filter(p => p.reportedBy).map(p => [p.id, p]));
-          return fetchedPotholes.map(p => fullDetailsMap.has(p.id) ? { ...p, ...fullDetailsMap.get(p.id) } : p);
+          const fullDetailsMap = new Map<string, Pothole>(prev.filter(p => p.reportedBy).map(p => [p.id, p]));
+          return fetchedPotholes.map(p => {
+            const existing = fullDetailsMap.get(p.id);
+            return existing ? { ...p, ...existing } : p;
+          });
         });
       } else {
         setPotholes([]);
@@ -150,17 +164,36 @@ export default function App() {
     }
   };
 
-  const handleMapClick = (latlng: L.LatLng) => {
+  const handleMapClick = async (latlng: L.LatLng) => {
     if (!user) {
       alert('Please log in to report a pothole.');
       return;
     }
+
+    // Check if clicked point is in a water body
+    const check = await checkIfWaterLocation(latlng.lat, latlng.lng);
+    if (check.isWater) {
+      setWaterWarning({
+        title: 'Water Body Detected',
+        message: `Potholes cannot be reported in water bodies (${check.waterName || 'ocean, sea, river, or lake'}). Please click on a road or land surface.`
+      });
+      return;
+    }
+
+    setWaterWarning(null);
     setSelectedLocation({ lat: latlng.lat, lng: latlng.lng });
     setIsReportModalOpen(true);
   };
 
   const handleSubmitReport = async (data: { lat: number; lng: number; severity: Severity; description: string; imageUrl: string }) => {
     if (!user) return;
+    
+    // Safety check: under no condition allow reporting potholes on water
+    const check = await checkIfWaterLocation(data.lat, data.lng);
+    if (check.isWater) {
+      alert(`Cannot report pothole on water: ${check.waterName || 'Selected location is in a water body'}. Potholes can only be reported on roads.`);
+      return;
+    }
     
     try {
       const newPotholeRef = doc(collection(db, 'potholes'));
@@ -330,6 +363,29 @@ export default function App() {
             </header>
 
             <main className="flex-1 relative z-0">
+              {waterWarning && (
+                <div className="absolute top-20 left-1/2 transform -translate-x-1/2 z-30 w-11/12 max-w-lg bg-red-600 text-white p-4 rounded-2xl shadow-2xl flex items-start gap-3 border border-red-500 animate-bounce-short">
+                  <div className="bg-white/20 p-2 rounded-xl shrink-0">
+                    <Waves className="w-6 h-6 text-white" />
+                  </div>
+                  <div className="flex-1 text-sm">
+                    <h4 className="font-bold flex items-center gap-1.5 text-base">
+                      <ShieldAlert size={18} />
+                      {waterWarning.title}
+                    </h4>
+                    <p className="mt-1 text-red-100 leading-relaxed font-normal">
+                      {waterWarning.message}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setWaterWarning(null)}
+                    className="text-white/80 hover:text-white p-1 rounded-lg hover:bg-white/10 transition-colors"
+                  >
+                    <X size={18} />
+                  </button>
+                </div>
+              )}
+
               <PotholeMap 
                 potholes={potholes} 
                 isAdmin={user.role === 'admin'}

@@ -28,7 +28,7 @@ interface MapProps {
   isAdmin: boolean;
   isExportMode?: boolean;
   exportSelectedIds?: Set<string>;
-  onStatusChange: (id: string, newStatus: 'open' | 'fixed') => void;
+  onStatusChange: (id: string, newStatus: 'open' | 'fixed', fixedImageUrl?: string) => void;
   onDelete: (id: string) => void;
   onMapClick: (latlng: L.LatLng) => void;
   onMarkerClick?: (id: string) => void;

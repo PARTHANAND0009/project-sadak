@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { X, MapPin, AlertTriangle, Camera, Image as ImageIcon } from 'lucide-react';
+import { X, MapPin, AlertTriangle, Camera, Waves, CheckCircle2, Loader2, ShieldAlert } from 'lucide-react';
 import { Severity } from '../types';
+import { checkIfWaterLocation, WaterCheckResult } from '../utils/waterCheck';
 
 interface ReportModalProps {
   isOpen: boolean;
@@ -18,17 +19,57 @@ export default function ReportModal({ isOpen, onClose, onSubmit, initialLocation
   const [isLocating, setIsLocating] = useState(false);
   const [imageUrl, setImageUrl] = useState<string>('');
   const [isCompressing, setIsCompressing] = useState(false);
+  const [isCheckingWater, setIsCheckingWater] = useState(false);
+  const [waterCheckResult, setWaterCheckResult] = useState<WaterCheckResult | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (isOpen) {
-      setLat(initialLocation ? initialLocation.lat.toString() : '');
-      setLng(initialLocation ? initialLocation.lng.toString() : '');
+      const initialLat = initialLocation ? initialLocation.lat.toString() : '';
+      const initialLng = initialLocation ? initialLocation.lng.toString() : '';
+      setLat(initialLat);
+      setLng(initialLng);
       setSeverity('medium');
       setDescription('');
       setImageUrl('');
+      setWaterCheckResult(null);
+
+      if (initialLocation) {
+        validateCoordinates(initialLocation.lat, initialLocation.lng);
+      }
     }
   }, [isOpen, initialLocation]);
+
+  const validateCoordinates = async (latitude: number, longitude: number) => {
+    if (isNaN(latitude) || isNaN(longitude)) {
+      setWaterCheckResult(null);
+      return;
+    }
+    setIsCheckingWater(true);
+    try {
+      const result = await checkIfWaterLocation(latitude, longitude);
+      setWaterCheckResult(result);
+    } catch (err) {
+      console.error('Error verifying terrain', err);
+      setWaterCheckResult({ isWater: false });
+    } finally {
+      setIsCheckingWater(false);
+    }
+  };
+
+  // Debounced check when lat/lng change
+  useEffect(() => {
+    const latNum = parseFloat(lat);
+    const lngNum = parseFloat(lng);
+    if (!isNaN(latNum) && !isNaN(lngNum) && latNum >= -90 && latNum <= 90 && lngNum >= -180 && lngNum <= 180) {
+      const timer = setTimeout(() => {
+        validateCoordinates(latNum, lngNum);
+      }, 500);
+      return () => clearTimeout(timer);
+    } else {
+      setWaterCheckResult(null);
+    }
+  }, [lat, lng]);
 
   if (!isOpen) return null;
 
@@ -96,10 +137,18 @@ export default function ReportModal({ isOpen, onClose, onSubmit, initialLocation
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!lat || !lng) {
       alert('Please provide a location.');
+      return;
+    }
+
+    const latitude = parseFloat(lat);
+    const longitude = parseFloat(lng);
+
+    if (isNaN(latitude) || isNaN(longitude)) {
+      alert('Please provide valid latitude and longitude values.');
       return;
     }
     
@@ -107,10 +156,25 @@ export default function ReportModal({ isOpen, onClose, onSubmit, initialLocation
       alert('Please upload a photo of the pothole.');
       return;
     }
+
+    // Final safety check before submission
+    setIsCheckingWater(true);
+    const check = await checkIfWaterLocation(latitude, longitude);
+    setIsCheckingWater(false);
+    setWaterCheckResult(check);
+
+    if (check.isWater) {
+      alert(
+        `Cannot report pothole on water: ${
+          check.waterName ? `Selected location is in ${check.waterName}` : 'The selected coordinates are in a water body or ocean'
+        }. Potholes can only be reported on roads or land.`
+      );
+      return;
+    }
     
     onSubmit({
-      lat: parseFloat(lat),
-      lng: parseFloat(lng),
+      lat: latitude,
+      lng: longitude,
       severity,
       description,
       imageUrl
@@ -122,6 +186,7 @@ export default function ReportModal({ isOpen, onClose, onSubmit, initialLocation
     setSeverity('medium');
     setDescription('');
     setImageUrl('');
+    setWaterCheckResult(null);
     onClose();
   };
 
@@ -170,8 +235,43 @@ export default function ReportModal({ isOpen, onClose, onSubmit, initialLocation
               <MapPin size={16} />
               {isLocating ? 'Locating...' : 'Use Current Location'}
             </button>
+
+            {/* Water Location Warning & Validation Feedback */}
+            {isCheckingWater && (
+              <div className="mt-2.5 flex items-center gap-2 text-xs text-amber-700 bg-amber-50 p-2.5 rounded-lg border border-amber-200">
+                <Loader2 size={14} className="animate-spin text-amber-600 shrink-0" />
+                <span>Verifying terrain & checking for water bodies...</span>
+              </div>
+            )}
+
+            {!isCheckingWater && waterCheckResult && waterCheckResult.isWater && (
+              <div className="mt-2.5 p-3 bg-red-50 border border-red-200 rounded-xl text-red-800 text-xs flex items-start gap-2.5 animate-fadeIn">
+                <Waves className="text-red-600 shrink-0 mt-0.5" size={16} />
+                <div>
+                  <p className="font-semibold text-red-900 flex items-center gap-1">
+                    <ShieldAlert size={13} className="inline" /> Water Body Detected — Reporting Blocked
+                  </p>
+                  <p className="mt-1 text-red-700 leading-relaxed">
+                    {waterCheckResult.reason || 'This location is in a water body. Potholes can only be reported on roads or land.'}
+                  </p>
+                  <p className="mt-1.5 font-medium text-red-900">
+                    Please select a point on a road, street, or land.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {!isCheckingWater && waterCheckResult && !waterCheckResult.isWater && (
+              <div className="mt-2.5 flex items-center gap-2 text-xs text-emerald-800 bg-emerald-50 p-2.5 rounded-lg border border-emerald-200">
+                <CheckCircle2 size={14} className="text-emerald-600 shrink-0" />
+                <span className="truncate">
+                  Valid land location: {waterCheckResult.roadName || 'Road verified'}
+                </span>
+              </div>
+            )}
+
             <p className="text-xs text-gray-500 mt-2 text-center">
-              Or close this modal and click anywhere on the map to drop a pin.
+              Or close this modal and click anywhere on the road to drop a pin.
             </p>
           </div>
 
@@ -259,9 +359,19 @@ export default function ReportModal({ isOpen, onClose, onSubmit, initialLocation
             </button>
             <button
               type="submit"
-              className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white py-2.5 rounded-xl font-medium transition-colors shadow-lg shadow-emerald-600/20"
+              disabled={isCheckingWater || isCompressing || Boolean(waterCheckResult?.isWater)}
+              className="flex-1 bg-emerald-600 hover:bg-emerald-500 disabled:bg-gray-300 disabled:cursor-not-allowed disabled:shadow-none text-white py-2.5 rounded-xl font-medium transition-colors shadow-lg shadow-emerald-600/20 flex items-center justify-center gap-2"
             >
-              Submit Report
+              {isCheckingWater ? (
+                <>
+                  <Loader2 size={16} className="animate-spin" />
+                  <span>Verifying Location...</span>
+                </>
+              ) : waterCheckResult?.isWater ? (
+                <span>Cannot Report on Water</span>
+              ) : (
+                <span>Submit Report</span>
+              )}
             </button>
           </div>
         </form>
